@@ -4,22 +4,29 @@
  */
 package simplexe;
 
-import java.awt.Dimension;
+
+import com.alee.laf.WebLookAndFeel;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Panel;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.text.DecimalFormat;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
+
 
 /**
  *
@@ -45,10 +52,16 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
      */
     public Fenetre() {
         initComponents();
+        
         ButtonGroup grp = new ButtonGroup();
         grp.add(jRadioButton1);
         grp.add(jRadioButton2);
         jRadioButton1.setSelected(true);
+        
+        grp = new ButtonGroup();
+        grp.add(min_radio);
+        grp.add(max_radio);
+        max_radio.setSelected(true);
         
         /* =============== Initialisation du premier panel =============== */
         jPanel1.setLayout(new GridBagLayout());
@@ -56,8 +69,15 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         cons.gridx=0;
         cons.gridy=compteur++;
         jPanel1.add(new JLabel("Fonction Economique : "),cons);
-        cons.gridx=1;
+        
+        JPanel min_max_pan = new JPanel();
+        min_max_pan.add(min_radio);
+        min_max_pan.add(max_radio);
+        
+        cons.gridx=0;
         cons.gridy=compteur++;
+        jPanel1.add(min_max_pan,cons);
+        cons.gridx=1;
         fields.add(new JTextField(15));
         jPanel1.add(fields.get(fields.size()-1),cons);
         cons.gridx=0;
@@ -87,6 +107,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         jRadioButton2 = new javax.swing.JRadioButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Simplexe - Morabit Mouad");
 
         jButton1.setText("Ajouter contrainte");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -171,8 +192,6 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
                 .addContainerGap())
         );
 
-        jButton2.getAccessibleContext().setAccessibleParent(jScrollPane1);
-
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -205,18 +224,19 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         if(jRadioButton1.isSelected())
         {
         /* ==================== Traitement cas automatique ====================== */
+            System.out.println("Le probleme est en "+Simplexe.getZTypeCourant()+" "+Simplexe.getPhase());
             String pivot = Simplexe.trouver_pivot(data);
             while(!pivot.equals("-1,-1") && !pivot.equals("0,0")) 
             {   
                 tcon.gridy=tcompteur++;
-
+                
                 if(iteration==0) 
                 {
-                    jPanel2.add(new JLabel("Tableau initial :"),tcon);
+                    jPanel2.add(new JLabel((Simplexe.getPhase().equals("phase1")?"Phase 1 - ":"")+"Tableau initial :"),tcon);
 
                 }
                 else{
-                    jPanel2.add(new JLabel("Tableau "+iteration+" :"),tcon);
+                    jPanel2.add(new JLabel((Simplexe.getPhase().equals("phase1")?"Phase 1 - ":"")+"Tableau "+iteration+" :"),tcon);
                 }
             
 
@@ -230,25 +250,91 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
                Simplexe.calculer(data,pivot);
                pivot = Simplexe.trouver_pivot(data);
                iteration++;
-               }
+            }
                tcon.gridy=tcompteur++;
-               jPanel2.add(new JLabel("Tableau final :"),tcon);
+               jPanel2.add(new JLabel((Simplexe.getPhase().equals("phase1")?"Phase 1 - ":"")+"Tableau final :"),tcon);
 
                for(int i=0;i<data.size()-1;i++)
                {
                    data.get(i).remove(data.get(i).size()-1);
                }
 
-               jPanel2.setVisible(false);
-                jPanel2.setVisible(true);
-        
-               if(pivot.equals("0,0"))
-                   JOptionPane.showMessageDialog(this, "Probleme non borné");
                
                tcon.gridy=tcompteur++;
                tableit = new TableIT(data,true,true);
                tables.add(tableit);
                jPanel2.add(tables.lastElement(),tcon);
+               
+               //==================================
+               
+               if(Simplexe.getPhase().equals("phase1") && Float.parseFloat(data.lastElement().lastElement())==0)
+               {
+                   iteration=0;
+                   Simplexe.initialiser_phase2(data);
+                   tcon.gridy=tcompteur++;
+                   jPanel2.add(new JLabel("Début de la phase 2 : "),tcon);
+
+                   pivot = Simplexe.trouver_pivot(data);
+            
+                   
+                while(!pivot.equals("-1,-1") && !pivot.equals("0,0")) 
+                {   
+                    tcon.gridy=tcompteur++;
+
+                    if(iteration==0) 
+                    {
+                        jPanel2.add(new JLabel("Phase 2 - "+"Tableau initial :"),tcon);
+
+                    }
+                    else{
+                        jPanel2.add(new JLabel("Phase 2 - "+"Tableau "+iteration+" :"),tcon);
+                    }
+
+
+                    tcon.gridy=tcompteur++;   
+                    tableit = new TableIT(data,false,true);
+                    tableit.colorierPivot(pivot);
+                    tables.add(tableit);
+                    jPanel2.add(tables.lastElement(),tcon);
+
+
+                   Simplexe.calculer(data,pivot);
+                   pivot = Simplexe.trouver_pivot(data);
+                   iteration++;
+                }
+               tcon.gridy=tcompteur++;
+               jPanel2.add(new JLabel((Simplexe.getPhase().equals("phase1")?"Phase 1 - ":"")+"Tableau final :"),tcon);
+
+               if(data.get(0).lastElement().equals("Ratio"))
+               {
+                for(int i=0;i<data.size()-1;i++)
+                {
+                    data.get(i).remove(data.get(i).size()-1);
+                }
+               }
+
+               
+               tcon.gridy=tcompteur++;
+               tableit = new TableIT(data,true,true);
+               tables.add(tableit);
+               jPanel2.add(tables.lastElement(),tcon);
+               
+               }else if(Simplexe.getPhase().equals("phase1") && Float.parseFloat(data.lastElement().lastElement())!=0)
+               {
+                   tcon.gridy=tcompteur++;
+                    jPanel2.add(new JLabel("Le problème n'a pas de solution !!!"),tcon);
+               }
+               
+               //==================================
+                if(pivot.equals("0,0"))
+                {
+                 tcon.gridy=tcompteur++;
+                 jPanel2.add(new JLabel("Problème non borné !!!"),tcon);    
+                }
+               
+                jPanel2.setVisible(false);
+                jPanel2.setVisible(true);
+        
         }
         else
         {
@@ -264,33 +350,20 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Fenetre.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Fenetre.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Fenetre.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Fenetre.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
+      
+   
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Fenetre().setVisible(true);
+                try {
+                    
+                    //de.javasoft.plaf.synthetica.SyntheticaBlackStarLookAndFeel
+                    //com.alee.laf.WebLookAndFeel
+                    
+                    UIManager.setLookAndFeel("de.javasoft.plaf.synthetica.SyntheticaBlackStarLookAndFeel");
+                     new Fenetre().setVisible(true);
+                } catch (Exception ex) {
+                    Logger.getLogger(Fenetre.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }
@@ -304,7 +377,9 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
     // End of variables declaration//GEN-END:variables
-
+    private JRadioButton min_radio = new JRadioButton("Min");
+    private JRadioButton max_radio = new JRadioButton("Max");
+    
 
     private String afficher_tableau(Vector<Vector<String>> data)
     {
@@ -336,13 +411,26 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         for(int i=1;i<fields.size();i++)
             contraintes.add(fields.get(i).getText().replaceAll(" ", ""));
         
+        
         jPanel2.removeAll();
         tables = new Vector();
         btn_tables = new Vector();
+        if(min_radio.isSelected()) 
+        {
+            Simplexe.setZType("min");
+            Simplexe.setZTypeCourant("min");
+        }
+        else
+        {
+            Simplexe.setZType("max");
+            Simplexe.setZTypeCourant("max");
+        
+        }
         data = Simplexe.initialiser(fields.get(0).getText().replaceAll(" ", ""),contraintes);
         iteration=0;
         tcon.gridx=0;
         tcon.gridy=0;
+        
         
     }
 

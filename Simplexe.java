@@ -19,45 +19,62 @@ public class Simplexe {
      */
     private static int compteur =0;
     private static final String REGEX_LEADING_DIGITS = "^[0-9]{0,}([\\./][0-9]{0,}){0,1}";
+    private static Vector<String> contraintes=new Vector();
     private static Vector<Vector<String>> data;
+    private static Vector<Integer> b = new Vector();
     private static DecimalFormat df = new DecimalFormat("#.##");
+    private static String z_type="max"; // probleme de min ou de max ?
+    private static String z_type_courant="max"; // changement du type du problème du a la possibilité de passer a la phase1/2
     
+    // cas de deux phases
+    private static String ecart_phase1=""; //les variables d ecart a ne pas afficher en base
+    private static String phase="normale"; // On est dans quel phase ?
+    private static Vector<Integer> indice_artificielles = new Vector(); // indice des contraintes avec variables artificielles
+    private static Vector<String> z_initial;
     public static void main(String[] args) {
         
         String z="1000x1+2000x2";
-        Vector<String> contraintes=new Vector();
+        
         
         contraintes.add("x1+x2<=150");
         contraintes.add("4x1+2x2<=440");
-        contraintes.add("x1+4x2<=480");
-        contraintes.add("x1<=90");
+        contraintes.add("x1+4x2>=480");
+        contraintes.add("x1=90");
         
         data = initialiser(z,contraintes);
-        String pivot = trouver_pivot(data);
+        //String pivot = trouver_pivot(data);
         
         //System.out.println("Tableau Initial");
-        while(!pivot.equals("-1,-1")) 
-        {
+        //while(!pivot.equals("-1,-1")) 
+        //{
         afficher_tableau(data);
-        calculer(data,pivot);
-        pivot = trouver_pivot(data);
-        }
-        System.out.println("Tableau final : ");
-        for(int i=0;i<data.size()-1;i++)
-        {
-            data.get(i).remove(data.get(i).size()-1);
-        }
-       afficher_tableau(data);
+        //calculer(data,pivot);
+        //pivot = trouver_pivot(data);
+        //}
+        //System.out.println("Tableau final : ");
+        //for(int i=0;i<data.size()-1;i++)
+        //{
+        //    data.get(i).remove(data.get(i).size()-1);
+        //}
+       //afficher_tableau(data);
         
+        
+        System.out.println();
+        afficher_tableau(data);
         
     }
     public static Vector<Vector<String>> initialiser(String z,Vector<String> contraintes) {
-        String fonction ="5x+y";
         
-        Vector<Integer> b = new Vector();
+        
+        
         Vector<String> variables = new Vector();
         data = new Vector();
         compteur=0;
+        phase="normale";
+        ecart_phase1="";
+        indice_artificielles = new Vector();
+        b = new Vector();
+        Simplexe.contraintes=contraintes;
         
         for(int i=0;i<contraintes.size();i++)
         {
@@ -130,7 +147,7 @@ public class Simplexe {
         Vector<String> ligne=new Vector();
         for(int i=0;i<variables.size();i++)
         {
-            if(z.contains(variables.get(i)))
+            if(z.contains(variables.get(i)) || ecart_phase1.contains(variables.get(i)))
                 continue;
             else
             {
@@ -211,13 +228,84 @@ public class Simplexe {
                         }
                         ligne.add("0");
                         data.add(ligne);
+                        
+                        
+                        
+        // cas de la phase1, calcul de la somme des variables artificielles
+        if(phase.equals("phase1"))
+        {
+            z_type_courant="min";
+            afficher_tableau(data);
+            for(int i=0;i<indice_artificielles.size();i++)
+            {
+                        System.out.println("Indice "+indice_artificielles.get(i));
+            }
+            z_initial = (Vector<String>) data.lastElement().clone();
+
+            for(int i=1;i<((data.get(0).lastElement().equals("Ratio"))?data.get(0).size()-1:data.get(0).size());i++)
+            {
+                if(!data.get(0).get(i).matches("^a[0-9]+$"))
+                {
+                    float somme=0;
+                    for(int j=0;j<indice_artificielles.size();j++)
+                    {
+                        somme += Float.parseFloat(data.get(indice_artificielles.get(j)+1).get(i));
+                    }
+                    data.lastElement().set(i, ((somme!=0)?somme*-1:somme)+"");
+
+                }
+            }
+            
+        }
+        
+        
         return data;
 
     
     }
     
+    public static void initialiser_phase2(Vector<Vector<String>> data)
+    {
+       data.set(data.size()-1, z_initial); 
+       z_type_courant = z_type;
+       System.out.println("Probleme de base : "+z_type_courant);
+       
+       for(int i=1;i<data.size()-1;i++)
+       {
+           for(int j=1;j<data.lastElement().size()-1;j++)
+           {
+               if(data.get(i).get(0).equals(data.get(0).get(j)))
+               {
+                   Simplexe.calculer(data, i+","+j);
+               }
+           }
+       }
+       
+       boolean stop =false;
+       while(!stop)
+       {
+        for(int i=0;i<data.lastElement().size();i++)
+        {
+
+            if(data.get(0).get(i).matches("^a[0-9]+$"))
+            {
+                System.out.println("Colonne "+i+" a supprimer");
+                for(int j=0;j<data.size();j++)
+                {
+                    data.get(j).remove(i);
+                }
+                break;
+            }
+            if(i==data.lastElement().size()-1)
+                stop=true;
+        }
+       }
+       
+    }
+    
     public static String equilibrer(String contrainte)
     {
+        
         if(contrainte.contains("<") || contrainte.contains("<="))
         {
             compteur++;
@@ -227,7 +315,22 @@ public class Simplexe {
         else if(contrainte.contains(">") || contrainte.contains(">="))
         {
             compteur++;
-            return contrainte.replace(">","-e"+compteur+"=").replace("==", "=");
+            if(Integer.parseInt(contrainte.split("=")[1])!=0)
+            {
+                ecart_phase1+="e"+compteur+",";
+                phase ="phase1";
+                indice_artificielles.add(contraintes.indexOf(contrainte));
+                return contrainte.replace(">","-e"+compteur+"+a"+compteur+"=").replace("==", "=");
+            }
+            else
+                return contrainte.replace(">","-e"+compteur+"=").replace("==","=");
+        }
+        else if(contrainte.contains("="))
+        {
+            compteur++;
+            phase ="phase1";
+            indice_artificielles.add(contraintes.indexOf(contrainte));
+            return contrainte.replace("=","+a"+compteur+"=");
         }
         else
         {
@@ -268,17 +371,29 @@ public class Simplexe {
         /* ======== Recherche de la plus grande valeur = la variante entrante = la colonne du pivot ======== */
         Vector<String> z = data.get(data.size()-1);
         float max=0;
+        float min=0;
         int VE=1;
         int VS=1;
-        for(int i=1;i<z.size();i++)
+        for(int i=1;i<z.size()-1;i++)
         {
-            if(Float.parseFloat(z.get(i))>max)
+            if(z_type_courant.equals("max"))
             {
-                max=Float.parseFloat(z.get(i));
-                VE=i;
+                if(Float.parseFloat(z.get(i))>max)
+                {
+                    max=Float.parseFloat(z.get(i));
+                    VE=i;
+                }
+            }
+            else
+            {
+                if(Float.parseFloat(z.get(i))<min)
+                {
+                    min=Float.parseFloat(z.get(i));
+                    VE=i;
+                }
             }
         }
-        if(max==0) return "-1,-1";
+        if(max==0 && min==0) return "-1,-1";
         
         /* =========== Calcul du tableau de ratio = colonne b / colonne du pivot ======== */
         //boolean non_borne=true;
@@ -311,7 +426,7 @@ public class Simplexe {
         }
         
         
-        float min=-1;
+        min=-1;
         for(int i=0;i<ratio.size();i++)
         {
             if(min==-1 && ratio.get(i)!=0)
@@ -399,6 +514,26 @@ public class Simplexe {
        
     }
     
+    public static void setZType(String type)
+    {
+        Simplexe.z_type=type;
+    }
+    
+    public static void setZTypeCourant(String type)
+    {
+        Simplexe.z_type_courant=type;
+    }
+    
+    public static String getZTypeCourant()
+    {
+        return Simplexe.z_type_courant;
+    }
+    
+    
+    public static String getPhase()
+    {
+        return Simplexe.phase;
+    }
     
     
 }
