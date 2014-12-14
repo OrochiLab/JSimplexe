@@ -38,8 +38,8 @@ public class Simplexe {
         
         contraintes.add("x1+x2<=150");
         contraintes.add("4x1+2x2<=440");
-        contraintes.add("x1+4x2>=480");
-        contraintes.add("x1=90");
+        contraintes.add("x1+4x2<=480");
+        contraintes.add("x1<=90");
         
         data = initialiser(z,contraintes);
         //String pivot = trouver_pivot(data);
@@ -366,7 +366,7 @@ public class Simplexe {
     
     
     
-    public static String trouver_pivot(Vector<Vector<String>> data)
+    public static String trouver_pivot(Vector<Vector<String>> data,boolean bland)
     {
         /* ======== Recherche de la plus grande valeur = la variante entrante = la colonne du pivot ======== */
         Vector<String> z = data.get(data.size()-1);
@@ -378,15 +378,18 @@ public class Simplexe {
         {
             if(z_type_courant.equals("max"))
             {
-                if(Float.parseFloat(z.get(i))>max)
-                {
-                    max=Float.parseFloat(z.get(i));
-                    VE=i;
-                }
+                
+                    if(Float.parseFloat(z.get(i))>(bland?0:max))
+                    {
+                        max=Float.parseFloat(z.get(i));
+                        VE=i;
+                        if(bland) break;
+                    }
+                
             }
             else
             {
-                if(Float.parseFloat(z.get(i))<min)
+                if(Float.parseFloat(z.get(i))<(bland?0:min))
                 {
                     min=Float.parseFloat(z.get(i));
                     VE=i;

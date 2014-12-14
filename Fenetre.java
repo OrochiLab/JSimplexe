@@ -5,7 +5,6 @@
 package simplexe;
 
 
-import com.alee.laf.WebLookAndFeel;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -105,6 +104,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         jPanel2 = new javax.swing.JPanel();
         jRadioButton1 = new javax.swing.JRadioButton();
         jRadioButton2 = new javax.swing.JRadioButton();
+        jCheckBox1 = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Simplexe - Morabit Mouad");
@@ -144,7 +144,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 185, Short.MAX_VALUE)
+            .addGap(0, 189, Short.MAX_VALUE)
         );
 
         jScrollPane3.setViewportView(jPanel2);
@@ -152,6 +152,8 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         jRadioButton1.setText("Pivot automatique");
 
         jRadioButton2.setText("Pivot manuel");
+
+        jCheckBox1.setText("Règle de \"Bland\"");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -163,12 +165,12 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 537, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jButton1, javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(jRadioButton1)
-                                .addComponent(jRadioButton2))
-                            .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jRadioButton1)
+                            .addComponent(jRadioButton2)
+                            .addComponent(jCheckBox1)
+                            .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(jScrollPane3))
                 .addContainerGap())
@@ -178,6 +180,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jButton1)
                         .addGap(18, 18, 18)
@@ -185,10 +188,11 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jRadioButton2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton2))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 177, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jCheckBox1)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton2)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane3)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -225,7 +229,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         {
         /* ==================== Traitement cas automatique ====================== */
             System.out.println("Le probleme est en "+Simplexe.getZTypeCourant()+" "+Simplexe.getPhase());
-            String pivot = Simplexe.trouver_pivot(data);
+            String pivot = Simplexe.trouver_pivot(data,jCheckBox1.isSelected());
             while(!pivot.equals("-1,-1") && !pivot.equals("0,0")) 
             {   
                 tcon.gridy=tcompteur++;
@@ -248,7 +252,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
 
 
                Simplexe.calculer(data,pivot);
-               pivot = Simplexe.trouver_pivot(data);
+               pivot = Simplexe.trouver_pivot(data,jCheckBox1.isSelected());
                iteration++;
             }
                tcon.gridy=tcompteur++;
@@ -274,7 +278,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
                    tcon.gridy=tcompteur++;
                    jPanel2.add(new JLabel("Début de la phase 2 : "),tcon);
 
-                   pivot = Simplexe.trouver_pivot(data);
+                   pivot = Simplexe.trouver_pivot(data,jCheckBox1.isSelected());
             
                    
                 while(!pivot.equals("-1,-1") && !pivot.equals("0,0")) 
@@ -299,7 +303,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
 
 
                    Simplexe.calculer(data,pivot);
-                   pivot = Simplexe.trouver_pivot(data);
+                   pivot = Simplexe.trouver_pivot(data,jCheckBox1.isSelected());
                    iteration++;
                 }
                tcon.gridy=tcompteur++;
@@ -370,6 +374,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JRadioButton jRadioButton1;
