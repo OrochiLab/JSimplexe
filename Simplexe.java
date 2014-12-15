@@ -4,6 +4,7 @@
  */
 package simplexe;
 
+import static java.lang.System.out;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Vector;
@@ -31,7 +32,7 @@ public class Simplexe {
     private static String phase="normale"; // On est dans quel phase ?
     private static Vector<Integer> indice_artificielles = new Vector(); // indice des contraintes avec variables artificielles
     private static Vector<String> z_initial;
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         
         String z="1000x1+2000x2";
         
@@ -62,7 +63,7 @@ public class Simplexe {
         System.out.println();
         afficher_tableau(data);
         
-    }
+    }*/
     public static Vector<Vector<String>> initialiser(String z,Vector<String> contraintes) {
         
         
@@ -258,7 +259,18 @@ public class Simplexe {
             
         }
         
-        
+       for(int i=1;i<data.size()-1;i++)
+       {
+           for(int j=1;j<data.lastElement().size()-1;j++)
+           {
+               if(data.get(i).get(j).contains("/"))
+               {
+                   Vector<String> tmp = data.get(i);
+                   tmp.set(j, (double)Float.parseFloat(data.get(i).get(j).split("/")[0])/Float.parseFloat(data.get(i).get(j).split("/")[1])+"");
+                   data.set(i, tmp);
+               }
+           }
+       }
         return data;
 
     
@@ -378,7 +390,13 @@ public class Simplexe {
         {
             if(z_type_courant.equals("max"))
             {
-                
+                    if(z.get(i).contains("/"))
+                    {
+                        out.println("Before : "+z.get(i));
+                        z.set(i, (double)Float.parseFloat(z.get(i).split("/")[0])/Float.parseFloat(z.get(i).split("/")[1])+"");
+                        out.println("After : "+z.get(i));
+                        
+                    }
                     if(Float.parseFloat(z.get(i))>(bland?0:max))
                     {
                         max=Float.parseFloat(z.get(i));
@@ -389,6 +407,12 @@ public class Simplexe {
             }
             else
             {
+                if(z.get(i).contains("/"))
+                {
+                        out.println("Before : "+z.get(i));
+                        z.set(i, (double)Float.parseFloat(z.get(i).split("/")[0])/Float.parseFloat(z.get(i).split("/")[1])+"");
+                        out.println("A : "+z.get(i));
+                }
                 if(Float.parseFloat(z.get(i))<(bland?0:min))
                 {
                     min=Float.parseFloat(z.get(i));
@@ -409,6 +433,13 @@ public class Simplexe {
         
         for(int i=1;i<data.size()-1;i++)
         {
+            if(data.get(i).get(VE).contains("/"))
+            {
+                Vector<String> tmp = data.get(i);
+                tmp.set(VE,(double)Float.parseFloat(data.get(i).get(VE).split("/")[0])/Float.parseFloat(data.get(i).get(VE).split("/")[1])+"");
+                data.set(i, tmp);
+            }
+            
             if(Float.parseFloat(data.get(i).get(VE))>0)
             {
                 ratio.add(Float.parseFloat(data.get(i).get(col_b))/Float.parseFloat(data.get(i).get(VE)));
