@@ -15,8 +15,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.text.DecimalFormat;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -113,7 +111,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         jButton3 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Simplexe - Morabit Mouad");
+        setTitle("JSimplexe - GI");
 
         jButton1.setText("Ajouter contrainte");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -386,7 +384,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
                     UIManager.setLookAndFeel("de.javasoft.plaf.synthetica.SyntheticaBlackStarLookAndFeel");
                      new Fenetre().setVisible(true);
                 } catch (Exception ex) {
-                    Logger.getLogger(Fenetre.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(null, "Une erreur est survenue, veuillez vérifier vos données");
                 }
             }
         });
@@ -461,12 +459,14 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         int count=0;
         for(int i=1;i<data.firstElement().size()-1;i++)
         {
-            if(!data.firstElement().get(i).matches("^e[0-9]{0,}"))
+            if(!data.firstElement().get(i).matches("^e[0-9]{0,}") && !data.firstElement().get(i).matches("^a[0-9]{0,}"))
                 count++;
         }
         System.out.println("Nombre de variables : "+count);
         if(count==2)
         {
+            init_contraintes.clear();
+            valeurs.clear();
             jButton3.setVisible(true);
             
             

@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.text.DecimalFormat;
 import java.util.Vector;
+
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -75,7 +76,7 @@ public class TableIT extends javax.swing.JPanel implements MouseListener{
         JLabel cellule;
         con.insets=new Insets(10, 5, 5, 10);
         
-        
+       
         for(int i=0;i<data.size();i++)
         {
             row = new Vector();
@@ -230,6 +231,10 @@ public class TableIT extends javax.swing.JPanel implements MouseListener{
 
     public int getCol_pivot() {
         return col_pivot;
+    }
+    
+    public  Vector<Vector<String>> getData(){
+    	return this.data;
     }
 
     
