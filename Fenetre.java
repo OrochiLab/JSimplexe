@@ -8,13 +8,14 @@ package simplexe;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Vector;
+
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -23,6 +24,8 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+
+import com.itextpdf.text.DocumentException;
 
 
 /**
@@ -124,6 +127,15 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
+                try {
+        			GenerPdf(tables);
+        		} catch (DocumentException e) {
+        			// TODO Auto-generated catch block
+        			e.printStackTrace();
+        		} catch (IOException e) {
+        			// TODO Auto-generated catch block
+        			e.printStackTrace();
+        		}
             }
         });
 
@@ -409,6 +421,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
     {
         String stream="\n\n";
         DecimalFormat df = new DecimalFormat("#.##");
+        
         for(int i=0;i<data.size();i++)
         {
             for(int j=0;j<data.get(i).size();j++)
@@ -537,6 +550,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
                 Simplexe.calculer(data, tables.get(i).getLigne_pivot()+","+tables.get(i).getCol_pivot());
                 tableau_manuel_suivant();
                 btn_tables.get(i).setEnabled(false);
+                
             }
         }
     }
@@ -586,5 +600,10 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
     }
 
 
-
+    public void GenerPdf(Vector<TableIT> tables) throws DocumentException, IOException{
+    	
+    	final String RESULT = "Simplexe-V2.pdf";
+    	new CreateSimplexePdf().createPdf(RESULT,tables);
+    	
+    }
 }
