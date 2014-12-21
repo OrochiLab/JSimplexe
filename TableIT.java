@@ -14,7 +14,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.text.DecimalFormat;
 import java.util.Vector;
-
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -29,7 +28,7 @@ public class TableIT extends javax.swing.JPanel implements MouseListener{
     /**
      * Creates new form TableIT
      */
-    private Vector<Vector<String>> data;
+    private Vector<Vector<String>> data= new Vector();
     private Vector<Vector<JLabel>> labels= new Vector();
     private GridBagConstraints con=new GridBagConstraints();
     private DecimalFormat df = new DecimalFormat("#.##");
@@ -40,7 +39,18 @@ public class TableIT extends javax.swing.JPanel implements MouseListener{
     
     public TableIT(Vector<Vector<String>> data,boolean finale,boolean automatique) {
         initComponents();
-        this.data=data;
+        
+        Vector<String> ligne;
+        for(int i=0;i<data.size();i++)
+        {
+            ligne = new Vector();
+            for(int j=0;j<data.get(i).size();j++)
+            {
+                ligne.add(data.get(i).get(j));
+            }
+            this.data.add(ligne);
+        }
+        
         this.setLayout(new GridBagLayout());
         this.finale=finale;
         this.automatique=automatique;
@@ -76,7 +86,7 @@ public class TableIT extends javax.swing.JPanel implements MouseListener{
         JLabel cellule;
         con.insets=new Insets(10, 5, 5, 10);
         
-       
+        
         for(int i=0;i<data.size();i++)
         {
             row = new Vector();
@@ -233,8 +243,9 @@ public class TableIT extends javax.swing.JPanel implements MouseListener{
         return col_pivot;
     }
     
-    public  Vector<Vector<String>> getData(){
-    	return this.data;
+    public Vector<Vector<String>> getData()
+    {
+        return data;
     }
 
     

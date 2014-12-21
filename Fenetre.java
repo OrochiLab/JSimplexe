@@ -5,27 +5,32 @@
 package simplexe;
 
 
+import com.itextpdf.text.DocumentException;
+import java.awt.Desktop;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Vector;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
-
-import com.itextpdf.text.DocumentException;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 
 /**
@@ -42,6 +47,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
     
     /*============Composants deuxième panel ========*/
     private Vector<TableIT> tables=new Vector();
+    private Vector<String> valeursZ = new Vector();
     private Vector<JButton> btn_tables =new Vector();
     private GridBagConstraints tcon = new GridBagConstraints();
     private int tcompteur =0;
@@ -51,6 +57,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
     /*==============Composants pour l'apercu graphique ========*/
     private Vector<String> init_contraintes = new Vector();
     private Vector<Vector<Double>> valeurs = new Vector();
+    private boolean bland=false;
     /**
      * Creates new form Fenetre
      */
@@ -91,6 +98,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         
         jPanel2.setLayout(new GridBagLayout());
         jButton3.setVisible(false);
+        jButton4.setVisible(false);
     }
 
     /**
@@ -112,9 +120,12 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         jRadioButton2 = new javax.swing.JRadioButton();
         jCheckBox1 = new javax.swing.JCheckBox();
         jButton3 = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("JSimplexe - GI");
+        setMaximumSize(new java.awt.Dimension(700, 2147483647));
+        setMinimumSize(new java.awt.Dimension(700, 0));
 
         jButton1.setText("Ajouter contrainte");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -127,15 +138,6 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
-                try {
-        			GenerPdf(tables);
-        		} catch (DocumentException e) {
-        			// TODO Auto-generated catch block
-        			e.printStackTrace();
-        		} catch (IOException e) {
-        			// TODO Auto-generated catch block
-        			e.printStackTrace();
-        		}
             }
         });
 
@@ -169,12 +171,20 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
 
         jRadioButton2.setText("Pivot manuel");
 
-        jCheckBox1.setText("Règle de \"Bland\"");
+        jCheckBox1.setSelected(true);
+        jCheckBox1.setText("Charger tout");
 
         jButton3.setText("Aperçu graphique");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton3ActionPerformed(evt);
+            }
+        });
+
+        jButton4.setText("Enregistrer PDF");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
             }
         });
 
@@ -184,26 +194,26 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 537, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jRadioButton1)
                             .addComponent(jRadioButton2)
                             .addComponent(jCheckBox1)
                             .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane3))
-                .addContainerGap())
+                            .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addGap(0, 13, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jButton1)
                         .addGap(18, 18, 18)
@@ -214,11 +224,13 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
                         .addComponent(jCheckBox1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jButton2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton3))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(5, 5, 5)
+                        .addComponent(jButton3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton4))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -255,7 +267,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         {
         /* ==================== Traitement cas automatique ====================== */
             System.out.println("Le probleme est en "+Simplexe.getZTypeCourant()+" "+Simplexe.getPhase());
-            String pivot = Simplexe.trouver_pivot(data,jCheckBox1.isSelected());
+            String pivot = Simplexe.trouver_pivot(data,bland);
             while(!pivot.equals("-1,-1") && !pivot.equals("0,0")) 
             {   
                 tcon.gridy=tcompteur++;
@@ -266,19 +278,24 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
 
                 }
                 else{
-                    jPanel2.add(new JLabel((Simplexe.getPhase().equals("phase1")?"Phase 1 - ":"")+"Tableau "+iteration+" :"),tcon);
+                    if(jCheckBox1.isSelected())
+                        jPanel2.add(new JLabel((Simplexe.getPhase().equals("phase1")?"Phase 1 - ":"")+"Tableau "+iteration+" :"),tcon);
                 }
             
 
-                tcon.gridy=tcompteur++;   
-                tableit = new TableIT(data,false,true);
-                tableit.colorierPivot(pivot);
-                tables.add(tableit);
-                jPanel2.add(tables.lastElement(),tcon);
-
-
+                if(jCheckBox1.isSelected() || iteration==0) // charget et afficher les tableaux
+                {
+                    tcon.gridy=tcompteur++;   
+                    tableit = new TableIT(data,false,true);
+                    tableit.colorierPivot(pivot);
+                    tables.add(tableit);
+                    jPanel2.add(tables.lastElement(),tcon);
+                }
+                
+               valeursZ.add(data.lastElement().lastElement());
+               verifierZ();
                Simplexe.calculer(data,pivot);
-               pivot = Simplexe.trouver_pivot(data,jCheckBox1.isSelected());
+               pivot = Simplexe.trouver_pivot(data,bland);
                iteration++;
             }
                tcon.gridy=tcompteur++;
@@ -304,7 +321,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
                    tcon.gridy=tcompteur++;
                    jPanel2.add(new JLabel("Début de la phase 2 : "),tcon);
 
-                   pivot = Simplexe.trouver_pivot(data,jCheckBox1.isSelected());
+                   pivot = Simplexe.trouver_pivot(data,bland);
             
                    
                 while(!pivot.equals("-1,-1") && !pivot.equals("0,0")) 
@@ -329,7 +346,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
 
 
                    Simplexe.calculer(data,pivot);
-                   pivot = Simplexe.trouver_pivot(data,jCheckBox1.isSelected());
+                   pivot = Simplexe.trouver_pivot(data,bland);
                    iteration++;
                 }
                tcon.gridy=tcompteur++;
@@ -380,6 +397,30 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         new GeomTest(init_contraintes, valeurs);
     }//GEN-LAST:event_jButton3ActionPerformed
 
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        try {
+            JFileChooser choose = new JFileChooser();
+            choose.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            FileNameExtensionFilter filtre = new FileNameExtensionFilter("Fichier PDF","pdf");
+            choose.setFileFilter(filtre);
+            choose.setSelectedFile(new File("Simplexe.pdf"));
+
+            if(choose.showSaveDialog(this)==JFileChooser.APPROVE_OPTION)
+            {
+                System.out.println("Chemin d'enregistrement : "+choose.getSelectedFile().getPath());
+                new CreateSimplexePdf().createPdf(choose.getSelectedFile().getPath()+"\\Simplexe.pdf",(min_radio.isSelected()?"Min Z = ":"Max Z = ")+fields.firstElement().getText(),init_contraintes,tables);
+                
+                if(JOptionPane.showConfirmDialog(this, "Fichier enregistré, souhaitez vous l'ouvrir ?")==JOptionPane.YES_OPTION)
+                    Desktop.getDesktop().open(new File(choose.getSelectedFile().getPath()+"\\Simplexe.pdf"));
+            }
+            
+        } catch (DocumentException ex) {
+            Logger.getLogger(Fenetre.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Fenetre.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButton4ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -405,6 +446,7 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
@@ -421,7 +463,6 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
     {
         String stream="\n\n";
         DecimalFormat df = new DecimalFormat("#.##");
-        
         for(int i=0;i<data.size();i++)
         {
             for(int j=0;j<data.get(i).size();j++)
@@ -504,6 +545,10 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
         }
         else
             jButton3.setVisible(false);
+        
+        jButton4.setVisible(true);
+        this.bland=false;
+        valeursZ.clear();
     }
 
     @Override
@@ -550,7 +595,6 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
                 Simplexe.calculer(data, tables.get(i).getLigne_pivot()+","+tables.get(i).getCol_pivot());
                 tableau_manuel_suivant();
                 btn_tables.get(i).setEnabled(false);
-                
             }
         }
     }
@@ -598,12 +642,21 @@ public class Fenetre extends javax.swing.JFrame implements MouseListener,ActionL
                 jPanel2.setVisible(true);
                 
     }
-
-
-    public void GenerPdf(Vector<TableIT> tables) throws DocumentException, IOException{
-    	
-    	final String RESULT = "Simplexe-V2.pdf";
-    	new CreateSimplexePdf().createPdf(RESULT,tables);
-    	
+    
+    private void verifierZ()
+    {
+        double val = Double.parseDouble(valeursZ.lastElement());
+        for(int i=0;i<valeursZ.size()-1;i++)
+        {
+            if(val==Double.parseDouble(valeursZ.get(i)))
+            {
+                System.out.print("Activation de la règle de Bland !");
+                this.bland = true;
+            }
+        }
+        System.out.println();
     }
+
+
+
 }

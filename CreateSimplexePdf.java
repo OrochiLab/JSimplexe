@@ -8,19 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeSet;
- 
-
-
-
-
-
-
-
-
-
-
 import java.util.Vector;
-
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chapter;
 import com.itextpdf.text.Chunk;
@@ -47,16 +35,8 @@ import com.itextpdf.text.pdf.PdfWriter;
 public class CreateSimplexePdf {
  
 	 /** Path to the resulting PDF file. */
-    public static final String RESULT = "Simplexe-V2.pdf";
     private static DecimalFormat df = new DecimalFormat("#.##");
-    /**
-     * Creates a PDF file: hello.pdf
-     * @param    args    no arguments needed
-     */
-    public static void main(String[] args)
-    	throws DocumentException, IOException {
-    	//new CreateSimplexePdf().createPdf(RESULT);
-    }
+  
     class TableHeader extends PdfPageEventHelper {
         /** The header text. */
         String header;
@@ -88,7 +68,7 @@ public class CreateSimplexePdf {
         public void onEndPage(PdfWriter writer, Document document) {
             PdfPTable table = new PdfPTable(3);
             try {
-            	String Ecole = "Ecole Nationale des Sciences Appliquées Khouribga 2015 -";
+            	String Ecole = "ENSA Khouribga - Recherche OpÃ©rationnelle";
                 table.setWidths(new int[]{24, 24, 2});
                 table.setTotalWidth(527);
                 table.setLockedWidth(true);
@@ -96,7 +76,7 @@ public class CreateSimplexePdf {
                 table.getDefaultCell().setBorder(Rectangle.BOTTOM);
                 table.addCell(header);
                 table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_CENTER);
-                table.addCell(String.format(Ecole+" Page %d of", writer.getPageNumber()));
+                table.addCell(Ecole);
                 PdfPCell cell = new PdfPCell(Image.getInstance(total));
                 cell.setBorder(Rectangle.BOTTOM);
                 table.addCell(cell);
@@ -125,60 +105,56 @@ public class CreateSimplexePdf {
      * @throws    DocumentException 
      * @throws    IOException 
      */
-    public void createPdf(String filename,Vector<TableIT> tables)
+    public void createPdf(String filename,String fonction,Vector<String> contraintes,Vector<TableIT> tableau)
 	throws DocumentException, IOException {
     	 // step 1
         Document document = new Document(PageSize.A4, 36, 36, 54, 36);
         // step 2
-        PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(RESULT));
+        PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(filename));
         TableHeader event = new TableHeader();
-        writer.setPageEvent(event);;
+        writer.setPageEvent(event);
         // step 3
         document.open();
         // step 4
 
         
-      //Recupere la date système
+      /*
         Date date = new Date(); 
-        //formater la date
-        SimpleDateFormat sdf = new SimpleDateFormat("EEEE, dd MMMM yyyy 'à' HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("EEEE, dd MMMM yyyy HH:mm:ss");
         Paragraph par = new Paragraph("Resultat Obtenus le "+sdf.format(date),FontFactory.getFont(FontFactory.COURIER, 11f,0));
         par.setAlignment(Element.ALIGN_RIGHT);
         document.add(par);
+        */
+        Paragraph par;
+        par = new Paragraph(fonction);
+        par.setAlignment(Element.ALIGN_CENTER);
         
-        
-
+        document.add(par);
+        par = new Paragraph("Contraintes : ");
+        par.setAlignment(Element.ALIGN_CENTER);
+        document.add(par);
+        for(int i=0;i<contraintes.size();i++)
+        {
+            par = new Paragraph(contraintes.get(i));
+            par.setAlignment(Element.ALIGN_CENTER);
+            document.add(par);
+        }
        
-        Chunk ck = new Chunk("Simplexe V2 2014-2015", FontFactory.getFont(FontFactory.COURIER, 20f,Font.BOLD));
+        /*Chunk ck = new Chunk("Simplexe V2 2014-2015", FontFactory.getFont(FontFactory.COURIER, 20f,Font.BOLD));
         ck.setUnderline((float) 1, -2);
         Paragraph para = new Paragraph(ck);
         para.setAlignment(Paragraph.ALIGN_CENTER);
-        document.add(para);
+        document.add(para);*/
         
-        //tableau(nbrecolonnes,nbrelignes)
-        Vector<TableIT> tableau=tables;
+        
         PdfPTable table;
         for(int i=0;i<tableau.size();i++)
         {
-        table = createTable1(document,tableau.get(i).getData(),tableau.get(i).getLigne_pivot(),tableau.get(i).getCol_pivot());
-        table.setSpacingBefore(10);
-        table.setSpacingAfter(10);
-        document.add(table);
+            table = createTable1(document,tableau.get(i).getData(),tableau.get(i).getLigne_pivot(),tableau.get(i).getCol_pivot());
+            table.setSpacingBefore(10);
+            table.setSpacingAfter(10);
+            document.add(table);
         }
-        /*
-         * table.setSpacingBefore(5);
-        table.setSpacingAfter(5);
-         */
-        /**table = createTable2();
-        table.setSpacingBefore(5);
-        table.setSpacingAfter(5);
-        document.add(table);
-         */
-        /*
-         *
-         * */
-        
-        // step 5
         document.close();
     }
 
@@ -186,13 +162,12 @@ public class CreateSimplexePdf {
 		Font font = FontFactory.getFont(FontFactory.COURIER, 10f);
         
 		int NbrColonne = tableau.firstElement().size();
-		System.out.println("Nombre de colonnes : "+NbrColonne);
 		PdfPTable table = new PdfPTable(NbrColonne);
-        table.setWidthPercentage(300 / 5.23f);
+        table.setWidthPercentage(500 / 5.23f);
         float tab[] = new float[NbrColonne];
         for(int i = 0;i<NbrColonne;i++)
         {
-        	if(i==0){tab[i]=4;}else{tab[i]=3;}
+        	if(i==0){tab[i]=2;}else{tab[i]=3;}
 
         }
         table.setWidths(tab);
@@ -204,33 +179,35 @@ public class CreateSimplexePdf {
         	{
         		for(int j=0;j<tableau.get(i).size();j++)
         		{
-        			PdfPCell Cell = new PdfPCell(new Phrase((tableau.get(i).get(j).contains(".") && j!=0)?df.format(Double.parseDouble(tableau.get(i).get(j))):tableau.get(i).get(j)));
+        			cell = new PdfPCell(new Phrase((tableau.get(i).get(j).contains(".") && j!=0)?df.format(Double.parseDouble(tableau.get(i).get(j))):tableau.get(i).get(j)));
                	 	
-        			if(j==0 || i ==0)
-        			{
-        				table.addCell(Cell);
-        			}else{
-        				if(i==ligne_pivot && j==col_pivot)
-                   	 		Cell.setBackgroundColor(BaseColor.YELLOW);
-            			if(i==ligne_pivot && j!=col_pivot)
-            				Cell.setBackgroundColor(BaseColor.ORANGE);
-            			if(i!=ligne_pivot && j==col_pivot)
-            				Cell.setBackgroundColor(BaseColor.ORANGE);
-            			table.addCell(Cell);
-        			}
+        			if(i!=0 && j!=0)
+                                {
+                                    if(i==ligne_pivot && j==col_pivot)
+                                            cell.setBackgroundColor(BaseColor.YELLOW);
+                                    if(i==ligne_pivot && j!=col_pivot && j!=(tableau.firstElement().size()-1))
+                                            cell.setBackgroundColor(BaseColor.ORANGE);
+                                    if(i!=ligne_pivot && j==col_pivot)
+                                            cell.setBackgroundColor(BaseColor.ORANGE);
+
+                                }
+                                
+                                table.addCell(cell);
+        			
         		}
+                        
         	}
+                if(tableau.lastElement().size()<tableau.firstElement().size())
+                {
+                    cell = new PdfPCell(new Phrase("0"));
+                    table.addCell(cell);
+                }
         	
         
         
-        
+        table.setComplete(true);
         return table;
     }
 	
-	  /**
-     * Creates a table; widths are set with setWidths().
-     * @return a PdfPTable
-     * @throws DocumentException
-     */
    
 }
